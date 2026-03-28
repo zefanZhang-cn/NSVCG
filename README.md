@@ -3,7 +3,7 @@ Source code of our paper entitled "Non-Salient Visual Content Grounding for Mult
 
 
 ## Required Environment
-To run the codes, you need to install the requirements for [RE](requirements.txt).
+To run the codes, you need to install the requirements for RE.
 
     pip install -r requirements.txt
 
