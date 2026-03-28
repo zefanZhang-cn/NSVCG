@@ -13,7 +13,7 @@ To run the codes, you need to install the requirements for RE.
   You need to download three kinds of data to run the code.  
   > 1.The raw images of [MNRE](https://github.com/thecharm/MNRE), many thanks.  
   > 2.The visual objects from the raw images from [HVPNeT](https://github.com/zjunlp/HVPNeT), many thanks.  
-  > 3.The generated image features from [InstructBLIP]([https://github.com/thecharm/TMR](https://github.com/salesforce/LAVIS/tree/main/projects/instructblip)), many thanks.
+  > 3.The generated image features from [InstructBLIP](https://github.com/salesforce/LAVIS/tree/main/projects/instructblip), many thanks.
   
   Then you should put folders ``img_org``,  ``img_vg``  under the "./data" path.
 
