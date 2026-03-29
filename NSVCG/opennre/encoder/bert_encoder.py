@@ -162,23 +162,6 @@ class TMR_RE(nn.Module):
                 label,
                 ):
 
-
-
-        #blip feat bs 90 4096
-        #blip obj feat  bs 10 4096
-
-        # vit原版
-        # pic_ori = image_ori
-        # pic_ori_ = torch.mean(pic_ori, dim=1)
-        # # ViT原版pic_ori_objects
-        # pic_ori_objects = torch.reshape(image_ori_objects, (-1, 3, 197, 768))
-        # pic_ori_objects = torch.mean(pic_ori_objects, dim=2)
-        # pic_ori_objects_ = torch.mean(pic_ori_objects, dim=1)
-        
-        
-
-
-
         pic_ori = self.mlp_blip(blip_feat)
         pic_ori_ = torch.mean(pic_ori, dim=1)
         # ViT原版pic_ori_objects
