@@ -172,32 +172,7 @@ class TMR_RE(nn.Module):
                 ground_label,
                 label,
                 ):
-        """
-        Args:
-            token: (B, L), index of tokens
-            att_mask: (B, L), attention mask (1 for contents and 0 for padding)
-            pos1: (B, 1), position of the head entity starter
-            pos2: (B, 1), position of the tail entity starter
-            image_ori: the original images from the dataset
-            image_ori_objects: the visual objects from the original images
-            image_diff: the generated images from stable-diffusion
-            image_diff_objects: the visual objects from the generated images
-            weights: the correlation coefficient between text and two types of images
-        """
-        """
-            四步走：
-            1.头、尾实体变成bsz,2*768，然后使用prototype，作为文本原型
-            2.object图：bsz,3,197,768变成bsz,3,768与头、尾实体的bsz,2,768作cross_attention
-            得到bsz,2,768，然后变成bsz,2*768使用prototype，作为图片原型
-            3.头尾实体的bsz,2,768作为Q，文本bsz,128,768作为KV做attention
-            4.头尾实体的bsz,2,768作为Q，完整图bsz,197,768作为KV做attention
-            5.将3和4的结果进行attention
-            6.将1，2，5的结果进行拼接，得到最终的x
 
-        """
-        """
-            先把257mask成0或者1（过一个线性层，然后使用relu），然后与之前的按位相乘，然后在把257sum了，之后不变
-        """
 
 
         #blip feat bs 90 4096
@@ -228,33 +203,6 @@ class TMR_RE(nn.Module):
 
 
 
-
-
-
-        #resnetyongfa
-        # feature_OriImg_FineGrained = self.model_resnet50.forward_features(image_ori)
-        # feature_OriImg_CoarseGrained = self.model_resnet50.forward_features(image_ori_objects)
-        # pic_ori = torch.reshape(feature_OriImg_FineGrained, (-1, 2048, 49))
-        # pic_ori = torch.transpose(pic_ori, 1, 2)
-        # pic_ori = torch.reshape(pic_ori, (-1, 49, 2048))
-        # pic_ori = self.linear_pic(pic_ori)
-        # pic_ori_ = torch.sum(pic_ori,dim=1)
-        #
-        #
-        # pic_ori_objects = torch.reshape(feature_OriImg_CoarseGrained, (-1, 2048, 49))
-        # pic_ori_objects = torch.transpose(pic_ori_objects, 1, 2)
-        # pic_ori_objects = torch.reshape(pic_ori_objects, (-1, 3, 49, 2048))
-        # pic_ori_objects = torch.sum(pic_ori_objects, dim=2)
-        # pic_ori_objects = self.linear_pic(pic_ori_objects)
-        # pic_ori_objects_ = torch.sum(pic_ori_objects,dim=1)
-
-
-
-
-
-
-
-
         output_text = self.bert(token, attention_mask=att_mask)
         hidden_text = output_text[0]  # bsz,128,768
 
@@ -276,33 +224,6 @@ class TMR_RE(nn.Module):
         a1,b1=self.att1(pic_q_ori_objects, hidden_k_phrases, hidden_v_phrases)
         pic_original_objects = torch.sum(torch.tanh(a1),
                                          dim=1)
-        # hidden_k_text = self.linear_k_fine(hidden_text)
-        # hidden_v_text = self.linear_v_fine(hidden_text)
-        # pic_q_origin = self.linear_q_fine(pic_ori)  # 原版
-        # a,b=self.att1(pic_q_origin, hidden_k_text, hidden_v_text)
-        # pic_original = torch.sum(torch.tanh(a), dim=1)  # bsz,768
-        #
-        #
-        # hidden_k_phrases = self.linear_k_coarse(hidden_phrases)
-        # hidden_v_phrases = self.linear_v_coarse(hidden_phrases)
-        # pic_q_ori_objects = self.linear_q_coarse(pic_ori_objects)  # 原版
-        # a1,b1=self.att1(pic_q_ori_objects, hidden_k_phrases, hidden_v_phrases)
-        # pic_original_objects = torch.sum(torch.tanh(a1),
-        #                                  dim=1)
-
-        # hidden_k_text = self.linear_k_fine(pic_ori)
-        # hidden_v_text = self.linear_v_fine(pic_ori)
-        # pic_q_origin = self.linear_q_fine(hidden_text)  # 原版
-        # pic_original = torch.sum(torch.tanh(self.att(pic_q_origin, hidden_k_text, hidden_v_text)), dim=1)  # bsz,768
-        #
-        #
-        # hidden_k_phrases = self.linear_k_coarse(pic_ori_objects)
-        # hidden_v_phrases = self.linear_v_coarse(pic_ori_objects)
-        # pic_q_ori_objects = self.linear_q_coarse(hidden_phrases)  # 原版
-        # pic_original_objects = torch.sum(torch.tanh(self.att(pic_q_ori_objects, hidden_k_phrases, hidden_v_phrases)),
-        #                                  dim=1)
-
-
 
 
 
@@ -321,43 +242,17 @@ class TMR_RE(nn.Module):
         x = torch.cat([head_hidden, tail_hidden], dim=-1)  # bsz,2*768
 
 
-        # pic_ori_final = (pic_original + pic_ori_) * weights[:, 1].reshape(-1, 1) + (
-        #         pic_original_objects + pic_ori_objects_) * weights[:, 0].reshape(-1, 1)
-        #
-        # pic_ori_old = torch.tanh(self.linear_extend_pic_old(pic_ori_final))  # 32,768
-        # pic_ori_new = torch.tanh(self.linear_extend_pic_new(pic_ori_final))  # 32,768
-        #
-        # x1 = torch.cat([x, hidden_phrases, pic_ori_old], dim=-1)
-        # x2 = torch.cat([x.unsqueeze(1), hidden_phrases.unsqueeze(1), pic_ori_new.unsqueeze(1)], dim=1)
-        # x_old = self.linear_final_woDif1(self.dropout_linear(x1))  # 32,2*768
-        # x_new = self.linear_final_woDif2(self.dropout_linear(x2))  # 32,3,2*768
-        #
-        # pic_ori_final = (pic_original + pic_ori_) * weights[:, 1].reshape(-1, 1) + (
-        #         pic_original_objects + pic_ori_objects_) * weights[:, 0].reshape(-1, 1)
 
         pic_ori_old = torch.tanh(self.linear_extend_pic_old(pic_original + pic_ori_)* weights[:, 1].reshape(-1, 1))  # 32,768
         pic_ori_new = torch.tanh(self.linear_extend_pic_new(pic_original_objects + pic_ori_objects_)* weights[:, 0].reshape(-1, 1))  # 32,768
 
 
-        # xx=torch.cat([torch.cat([x,hidden_phrases],dim=-1).unsqueeze(1),torch.cat([x,pic_ori_new],dim=-1).unsqueeze(1),torch.cat([x,pic_ori_old],dim=-1).unsqueeze(1)],dim=1)
-        # xx=self.ll(self.dropout_linear(xx))
-        #xx=torch.cat([torch.cat([x,hidden_phrases],dim=-1).unsqueeze(1),torch.cat([x,pic_ori_new+pic_ori_old],dim=-1).unsqueeze(1)],dim=1)
-        # xx=self.ll(self.dropout_linear(xx))
-
-
         #noisy=self.ll2(torch.cat([x,torch.sum(torch.tanh(b), dim=1),torch.sum(torch.tanh(b1), dim=1)],dim=-1))
         noisy=None
-        #
-        # xx2=self.ll2(xx.reshape(xx.size(0),-1))
-        # xx2=self.ll3(self.dropout_linear(torch.cat([x,self.ll2(hidden_phrases),pic_ori_new,pic_ori_old],dim=-1)))
-        #xx=torch.cat([x,hidden_phrases,pic_ori_new+pic_ori_old,hidden_text.mean(1)],dim=1)
-        # xx = torch.cat([x, hidden_phrases, pic_ori_new , pic_ori_old, hidden_text.mean(1)], dim=1)
+
         xx = torch.cat([x, hidden_phrases, pic_ori_new + pic_ori_old], dim=1)
         xx=self.ll(self.dropout_linear(xx)).unsqueeze(1)
 
-        #return xx.mean(1), xx, label,noisy.unsqueeze(1)
-        #return xx.mean(1), xx, label, None
-        #ground
         return xx.mean(1), xx, label,noisy,ground,ground_label,xx.mean(1),xx.mean(1)#pic_ori_old+pic_ori_new,pic_ori_old+pic_ori_new
 
 
