@@ -285,12 +285,7 @@ class SentenceRE(nn.Module):
 
             # Val
             logging.info("=== Epoch %d val ===" % epoch)
-            import time
-            start = time.time()
-            result, correct_category, org_category, n_category, data_pred_t, data_pred_f, id_list, feature_list = self.eval_model(
-                self.test_loader)
-            end = time.time()
-            print("all time: "+str(end-start))
+
                 
                 
                 
