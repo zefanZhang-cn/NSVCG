@@ -85,17 +85,6 @@ class TMR_RE(nn.Module):
         self.hidden_size = 768 * 2
 
         self.nclass = 300
-        # print(timm.create_model('resnet152').default_cfg)  #查看并下载resnet
-        # self.model_resnet152 = timm.create_model('resnet152', pretrained=True,pretrained_cfg_overlay=dict(file='/home/zhangweiqi/TMR-main/resnet152_a1h-dc400468.pth')) # get the pre-trained ResNet model for the image
-        # self.model_resnet101 = timm.create_model('resnet101', pretrained=True,pretrained_cfg_overlay=dict(file='/home/zhangweiqi/TMR-main/resnet101_a1h-36d3f2aa.pth')) # get the pre-trained ResNet model for the image
-        #resnet yong
-        # self.model_resnet50 = timm.create_model('resnet50', pretrained=True, pretrained_cfg_overlay=dict(
-        #     file='/home/zhangweiqi/TMR-main/resnet50_a1_0-14fe96d1.pth'))  # get the pre-trained ResNet model for the image
-        # for param in self.model_resnet50.parameters():
-        #     param.requires_grad = True
-        # self.linear_pic = nn.Linear(2048, self.hidden_size // 2)
-
-
 
         logging.info('Loading BERT pre-trained checkpoint.')
         self.bert = transformers.BertModel.from_pretrained(
